@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Creates a Lambda function that writes to an S3 bucket
+Parameters:
+  DestinationBucketName:
+    Type: String
+  AuditReadOnlyRole:
+    Type: String
+    Default: arn:aws:iam::123456789012:role/aws-controltower-AuditReadOnlyRole
+Resources:
+  ## S3 bucket
+  DestinationBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref DestinationBucketName
+  ## Lambda function
+  DanglingDNSAuditFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      MemorySize: 128
+      Timeout: 300
+      Role: !Ref AuditReadOnlyRole
+      Architectures:
+        - arm64
+      Environment:
+        Variables:
+          DestinationBucketName: !Ref DestinationBucketName
