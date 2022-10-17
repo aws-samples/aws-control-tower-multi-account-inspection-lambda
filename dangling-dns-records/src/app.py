@@ -80,17 +80,19 @@ def lambda_handler(event, context):
         except Exception as e:
             print("Exception : ##### ", account["Id"], e)
             continue
-        if audit_result != "":
-            s3 = boto3.resource('s3')
-            today = datetime.date.today()
-            objectName = today.strftime("%Y/%m/%d/auditreport")
-            s3.Bucket(bucketName).put_object(Key=objectName, Body=audit_result)
 
-            return {
-                'statusCode': 200,
-                'body': 'Dangling DNS records found. Audit report at ' + bucketName+objectName
-            }
+    if audit_result != "":
+        s3 = boto3.resource('s3')
+        today = datetime.date.today()
+        objectName = today.strftime("%Y/%m/%d/auditreport")
+        audit_report = "Account#, Hosted Zone ID, Record Set Name, IP Address, IP Owned \n" + auditresult
+        s3.Bucket(bucketName).put_object(Key=objectName, Body=audit_report)
+
         return {
             'statusCode': 200,
-            'body': 'No dangling DNS records found'
+            'body': 'Dangling DNS records found. Audit report at ' + bucketName+objectName
         }
+    return {
+        'statusCode': 200,
+        'body': 'No dangling DNS records found'
+    }
