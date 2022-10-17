@@ -4,9 +4,6 @@ Description: Creates a Lambda function that writes to an S3 bucket
 Parameters:
   DestinationBucketName:
     Type: String
-  AuditReadOnlyRole:
-    Type: String
-    Default: arn:aws:iam::123456789012:role/aws-controltower-AuditReadOnlyRole
 Resources:
   ## S3 bucket
   DestinationBucket:
@@ -22,7 +19,7 @@ Resources:
       Runtime: python3.9
       MemorySize: 128
       Timeout: 300
-      Role: !Ref AuditReadOnlyRole
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-controltower-AuditReadOnlyRole
       Architectures:
         - arm64
       Environment:
