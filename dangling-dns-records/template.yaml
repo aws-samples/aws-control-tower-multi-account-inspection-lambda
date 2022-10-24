@@ -1,27 +1,99 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Creates a Lambda function that audits for dangling DNS records in the AWS Organization and writes output to an S3 bucket
 Parameters:
   DestinationBucketName:
     Type: String
 Resources:
-  ## S3 bucket
   DestinationBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref DestinationBucketName
-  ## Lambda function
+      BucketName:
+        Ref: DestinationBucketName
+      AccessControl: Private
+      LoggingConfiguration:
+        DestinationBucketName:
+          Ref: LoggingBucket
+        LogFilePrefix: access-logs
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: AES256
+    Metadata:
+      SamResourceId: DestinationBucket
+  LoggingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Fn::Sub: ${DestinationBucketName}-logging
+      AccessControl: LogDeliveryWrite
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: AES256
+    Metadata:
+      SamResourceId: LoggingBucket
+  LoggingBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: LoggingBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Action:
+          - s3:GetObject
+          - s3:PutObject
+          Effect: Allow
+          Resource:
+            Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: LoggingBucket
+              - /*
+          Principal:
+            AWS:
+              Fn::Sub: arn:aws:iam::${AWS::AccountId}:root
+    Metadata:
+      SamResourceId: LoggingBucketPolicy
+  DestinationBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: DestinationBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Action:
+          - s3:GetObject
+          - s3:PutObject
+          Effect: Allow
+          Resource:
+            Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: DestinationBucket
+              - /*
+          Principal:
+            AWS:
+              Fn::Sub: arn:aws:iam::${AWS::AccountId}:root
+    Metadata:
+      SamResourceId: DestinationBucketPolicy
   DanglingDNSAuditFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-18md3jms38zsh/sam-app/a89429587d59de4f6a84ea7b60f3ea04
       Handler: app.lambda_handler
       Runtime: python3.9
       MemorySize: 128
       Timeout: 300
-      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-controltower-AuditReadOnlyRole
+      Role:
+        Fn::Sub: arn:aws:iam::${AWS::AccountId}:role/aws-controltower-AuditReadOnlyRole
       Architectures:
-        - arm64
+      - arm64
       Environment:
         Variables:
-          DestinationBucketName: !Ref DestinationBucketName
+          DestinationBucketName:
+            Ref: DestinationBucketName
+    Metadata:
+      SamResourceId: DanglingDNSAuditFunction
