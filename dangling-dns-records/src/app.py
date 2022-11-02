@@ -29,7 +29,7 @@ def lambda_handler(event, context):
                     RoleArn="arn:aws:iam::" +
                     account['Id'] +
                     ":role/aws-controltower-ReadOnlyExecutionRole",
-                    RoleSessionName="cross_acct_lambda"
+                    RoleSessionName="auditaccount_dns_audit"
                 )
                 ACCESS_KEY = account_to_audit['Credentials']['AccessKeyId']
                 SECRET_KEY = account_to_audit['Credentials']['SecretAccessKey']
