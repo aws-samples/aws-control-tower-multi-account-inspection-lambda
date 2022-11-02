@@ -38,6 +38,11 @@ Resources:
         ServerSideEncryptionConfiguration:
         - ServerSideEncryptionByDefault:
             SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: TRUE
+        IgnorePublicAcls: TRUE
+        BlockPublicPolicy: TRUE
+        RestrictPublicBuckets: TRUE
     Metadata:
       SamResourceId: LoggingBucket
   LoggingBucketPolicy:
