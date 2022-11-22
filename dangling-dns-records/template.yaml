@@ -43,6 +43,8 @@ Resources:
         IgnorePublicAcls: TRUE
         BlockPublicPolicy: TRUE
         RestrictPublicBuckets: TRUE
+      VersioningConfiguration:
+        Status: Enabled
     Metadata:
       SamResourceId: LoggingBucket
   LoggingBucketPolicy:
